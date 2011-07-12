@@ -65,10 +65,11 @@
             case '@':   // object
                 if ([[type componentsSeparatedByString:@"\""] count] > 1) {
                     className = [[type componentsSeparatedByString:@"\""] objectAtIndex:1];
+                    Class class = NSClassFromString(className);
                     value = [self performSelector:NSSelectorFromString(key)];
 
                     // only decode if the property conforms to NSCoding
-                    if (class_conformsToProtocol(NSClassFromString(className), @protocol(NSCoding))) {
+                    if([class conformsToProtocol:@protocol(NSCoding)]){
                         [coder encodeObject:value forKey:key];
                     }
                 }
@@ -131,8 +132,9 @@
             case '@':   // object
                 if ([[type componentsSeparatedByString:@"\""] count] > 1) {
                     className = [[type componentsSeparatedByString:@"\""] objectAtIndex:1];                    
+                    Class class = NSClassFromString(className);
                     // only decode if the property conforms to NSCoding
-                    if (class_conformsToProtocol(NSClassFromString(className), @protocol(NSCoding))) {
+                    if ([class conformsToProtocol:@protocol(NSCoding )]){
                         value = [[coder decodeObjectForKey:key] retain];
                         addr = (NSInteger)&value;
                         object_setInstanceVariable(self, [key UTF8String], *(id**)addr);
