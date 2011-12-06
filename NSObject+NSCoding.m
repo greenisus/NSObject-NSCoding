@@ -8,7 +8,6 @@
 
 #import "NSObject+NSCoding.h"
 #import <objc/runtime.h>
-#import <objc/objc-class.h>
 
 
 @implementation NSObject (NSCoding)
@@ -54,8 +53,11 @@
         double doubleValue;
         NSInteger intValue;
         unsigned long ulValue;
+		long longValue;
+		unsigned unsignedValue;
+		short shortValue;
         NSString *className;
-
+		
         NSMethodSignature *signature = [self methodSignatureForSelector:NSSelectorFromString(key)];
         NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
         [invocation setSelector:NSSelectorFromString(key)];
@@ -67,7 +69,7 @@
                     className = [[type componentsSeparatedByString:@"\""] objectAtIndex:1];
                     Class class = NSClassFromString(className);
                     value = [self performSelector:NSSelectorFromString(key)];
-
+					
                     // only decode if the property conforms to NSCoding
                     if([class conformsToProtocol:@protocol(NSCoding)]){
                         [coder encodeObject:value forKey:key];
@@ -104,6 +106,21 @@
                 [invocation getReturnValue:&ullValue];
                 [coder encodeObject:[NSNumber numberWithUnsignedLongLong:ullValue] forKey:key];
                 break;
+            case 'l':   // long
+                [invocation invoke];
+                [invocation getReturnValue:&longValue];
+                [coder encodeObject:[NSNumber numberWithLong:longValue] forKey:key];
+                break;
+            case 's':   // short
+                [invocation invoke];
+                [invocation getReturnValue:&shortValue];
+                [coder encodeObject:[NSNumber numberWithShort:shortValue] forKey:key];
+                break;
+            case 'I':   // unsigned
+                [invocation invoke];
+                [invocation getReturnValue:&unsignedValue];
+                [coder encodeObject:[NSNumber numberWithUnsignedInt:unsignedValue] forKey:key];
+                break;
             default:
                 break;
         }        
@@ -123,6 +140,9 @@
         double d;
         unsigned long ul;
         unsigned long long ull;
+		long longValue;
+		unsigned unsignedValue;
+		short shortValue;
         Ivar ivar;
         double *varIndex;
         
@@ -179,6 +199,25 @@
                 addr = (NSInteger)&ull;
                 object_setInstanceVariable(self, [key UTF8String], *(NSInteger**)addr);
                 break;
+			case 'l':   // long
+                number = [coder decodeObjectForKey:key];
+                longValue = [number longValue];
+                addr = (NSInteger)&longValue;
+                object_setInstanceVariable(self, [key UTF8String], *(NSInteger**)addr);
+                break;
+            case 'I':   // unsigned
+                number = [coder decodeObjectForKey:key];
+                unsignedValue = [number unsignedIntValue];
+                addr = (NSInteger)&unsignedValue;
+                object_setInstanceVariable(self, [key UTF8String], *(NSInteger**)addr);
+                break;
+            case 's':   // short
+                number = [coder decodeObjectForKey:key];
+                shortValue = [number shortValue];
+                addr = (NSInteger)&shortValue;
+                object_setInstanceVariable(self, [key UTF8String], *(NSInteger**)addr);
+                break;
+				
             default:
                 break;
         }
