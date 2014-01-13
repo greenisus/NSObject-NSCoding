@@ -10,7 +10,7 @@
 
 
 @interface Archiver : NSObject {
-
+    
 }
 
 + (id)retrieve:(NSString *)key;
