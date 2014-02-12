@@ -11,7 +11,7 @@ mike@overhrd.com
 twitter: @greenisus
 
 These are some simple classes to make object persistence with NSCoding easier.  This code was extracted from
-the Rackspace Butt / OpenStack iOS app at http://launchpad.net/openstack-ios
+the Rackspace Cloud / OpenStack iOS app at http://launchpad.net/openstack-ios
 
 # Installation
 
@@ -28,9 +28,9 @@ and run `pod install`
 Static
 -
 
-If you prefer not to use CocoaPods, simply drag Archiver.h, Archiver.m, NSObject+NSCoding.h, and NSObject+NSCoding.m into your project.
+If you prefer not to use CocoaPods, simply drag `Archiver.h`, `Archiver.m`, `NSObject+NSCoding.h`, and `NSObject+NSCoding.m` into your project.
 
-Then, right click Frameworks in Groups & Files and choose Add -> Existing Frameworks... and choose libobjc.A.dylib.
+Then, right click `Frameworks` in `Groups & Files` and choose `Add` -> `Existing Frameworks...` and choose `libobjc.A.dylib`.
 
 # Usage
 
