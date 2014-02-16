@@ -14,7 +14,7 @@
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     NSString *documentsDirectory = [paths objectAtIndex:0];
     NSString *filePath = [documentsDirectory stringByAppendingString:[NSString stringWithFormat:@"/%@.archive", key]];
-    return [[[NSKeyedUnarchiver unarchiveObjectWithFile:filePath] retain] autorelease];
+    return [NSKeyedUnarchiver unarchiveObjectWithFile:filePath];
 }
 
 + (BOOL)persist:(id)object key:(NSString *)key {
@@ -29,7 +29,7 @@
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     NSString *documentsDirectory = [paths objectAtIndex:0];
     NSString *filePath = [documentsDirectory stringByAppendingString:[NSString stringWithFormat:@"/%@.archive", key]];
-    return [fileManager removeItemAtPath:filePath error:NULL];    
+    return [fileManager removeItemAtPath:filePath error:NULL];
 }
 
 + (BOOL)deleteEverything {
