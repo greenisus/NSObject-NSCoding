@@ -74,8 +74,10 @@
                 if ([[type componentsSeparatedByString:@"\""] count] > 1) {
                     className = [[type componentsSeparatedByString:@"\""] objectAtIndex:1];
                     Class class = NSClassFromString(className);
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
                     value = [self performSelector:NSSelectorFromString(key)];
-
+#pragma clang diagnostic pop
                     // only decode if the property conforms to NSCoding
                     if([class conformsToProtocol:@protocol(NSCoding)]){
                         [coder encodeObject:value forKey:key];
