@@ -68,7 +68,6 @@
         NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
         [invocation setSelector:NSSelectorFromString(key)];
         [invocation setTarget:self];
-        
         switch ([type characterAtIndex:0]) {
             case '@':   // object
                 if ([[type componentsSeparatedByString:@"\""] count] > 1) {
@@ -84,6 +83,7 @@
                     }
                 }
                 break;
+            case 'B':   // bool for 64bit
             case 'c':   // bool
                 [invocation invoke];
                 [invocation getReturnValue:&boolValue];
@@ -191,6 +191,7 @@
                     }
                 }
                 break;
+            case 'B':   // bool for 64bit
             case 'c':   // bool
                 number = [coder decodeObjectForKey:key];
                 b = [number boolValue];
