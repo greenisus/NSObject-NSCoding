@@ -48,6 +48,7 @@
         NSString *type = [properties objectForKey:key];
         id value;
         unsigned long long ullValue;
+        long long llValue;
         BOOL boolValue;
         float floatValue;
         double doubleValue;
@@ -57,7 +58,6 @@
 		unsigned unsignedValue;
 		short shortValue;
         NSString *className;
-		
         NSMethodSignature *signature = [self methodSignatureForSelector:NSSelectorFromString(key)];
         NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
         [invocation setSelector:NSSelectorFromString(key)];
@@ -75,6 +75,11 @@
                         [coder encodeObject:value forKey:key];
                     }
                 }
+                break;
+            case 'B':
+                [invocation invoke];
+                [invocation getReturnValue:&boolValue];
+                [coder encodeObject:[NSNumber numberWithBool:boolValue] forKey:key];
                 break;
             case 'c':   // bool
                 [invocation invoke];
@@ -94,7 +99,7 @@
             case 'i':   // int
                 [invocation invoke];
                 [invocation getReturnValue:&intValue];
-                [coder encodeObject:[NSNumber numberWithInt:intValue] forKey:key];
+                [coder encodeObject:[NSNumber numberWithInteger:intValue] forKey:key];
                 break;
             case 'L':   // unsigned long
                 [invocation invoke];
@@ -105,6 +110,11 @@
                 [invocation invoke];
                 [invocation getReturnValue:&ullValue];
                 [coder encodeObject:[NSNumber numberWithUnsignedLongLong:ullValue] forKey:key];
+                break;
+            case 'q':   // long long
+                [invocation invoke];
+                [invocation getReturnValue:&llValue];
+                [coder encodeObject:[NSNumber numberWithLongLong:llValue] forKey:key];
                 break;
             case 'l':   // long
                 [invocation invoke];
@@ -130,8 +140,8 @@
 - (void)autoDecode:(NSCoder *)coder {
     NSDictionary *properties = [self properties];
     for (NSString *key in properties) {
+        NSString *ivarKey = [@"_"stringByAppendingString:key];
         NSString *type = [properties objectForKey:key];
-        id value;
         NSNumber *number;
         unsigned int addr;
         NSInteger i;
@@ -141,13 +151,22 @@
         unsigned long ul;
         unsigned long long ull;
 		long longValue;
+        long long longLongValue;
 		unsigned unsignedValue;
 		short shortValue;
         Ivar ivar;
-        double *varIndex;
+        
+        bool *varIndexBool;
+        float *varIndexFloat;
+        double *varIndexDouble;
+        unsigned long long *varIndexULongLong;
+        unsigned long *varIndexULong;
+        long *varIndexLong;
+        long long *varIndexLongLong;
+        unsigned *varU;
+        short *varShort;
         
         NSString *className;
-        
         switch ([type characterAtIndex:0]) {
             case '@':   // object
                 if ([[type componentsSeparatedByString:@"\""] count] > 1) {
@@ -155,67 +174,104 @@
                     Class class = NSClassFromString(className);
                     // only decode if the property conforms to NSCoding
                     if ([class conformsToProtocol:@protocol(NSCoding )]){
-                        value = [[coder decodeObjectForKey:key] retain];
-                        addr = (NSInteger)&value;
-                        object_setInstanceVariable(self, [key UTF8String], *(id**)addr);
+                        id value = [coder decodeObjectForKey:key];
+//                        object_setInstanceVariable(self, [ivarKey UTF8String], &value);
+                        [self setValue:value forKey:key];
                     }
+                }
+                break;
+            case 'B':   // bool
+                number = [coder decodeObjectForKey:key];
+                b = [number boolValue];
+                
+                if ((ivar = class_getInstanceVariable([self class], [ivarKey UTF8String]))) {
+                    varIndexBool = (bool *)(void **)((char *)self + ivar_getOffset(ivar));
+                    *varIndexBool = b;
                 }
                 break;
             case 'c':   // bool
                 number = [coder decodeObjectForKey:key];                
                 b = [number boolValue];
-                addr = (NSInteger)&b;
-                object_setInstanceVariable(self, [key UTF8String], *(NSInteger**)addr);
+                if ((ivar = class_getInstanceVariable([self class], [ivarKey UTF8String]))) {
+                    varIndexBool = (bool *)(void **)((char *)self + ivar_getOffset(ivar));
+                    *varIndexBool = b;
+                }
                 break;
             case 'f':   // float
                 number = [coder decodeObjectForKey:key];                
                 f = [number floatValue];
-                addr = (NSInteger)&f;
-                object_setInstanceVariable(self, [key UTF8String], *(NSInteger**)addr);
+                if ((ivar = class_getInstanceVariable([self class], [ivarKey UTF8String]))) {
+                    varIndexFloat = (float *)(void **)((char *)self + ivar_getOffset(ivar));
+                    *varIndexFloat = f;
+                }
                 break;
             case 'd':   // double                
                 number = [coder decodeObjectForKey:key];
                 d = [number doubleValue];
-                if ((ivar = class_getInstanceVariable([self class], [key UTF8String]))) {
-                    varIndex = (double *)(void **)((char *)self + ivar_getOffset(ivar));
-                    *varIndex = d;
+                if ((ivar = class_getInstanceVariable([self class], [ivarKey UTF8String]))) {
+                    varIndexDouble = (double *)(void **)((char *)self + ivar_getOffset(ivar));
+                    *varIndexDouble = d;
                 }
                 break;
             case 'i':   // int
                 number = [coder decodeObjectForKey:key];
                 i = [number intValue];
-                addr = (NSInteger)&i;
-                object_setInstanceVariable(self, [key UTF8String], *(NSInteger**)addr);
+                if ((ivar = class_getInstanceVariable([self class], [ivarKey UTF8String]))) {
+                    varIndexLong = (long *)(void **)((char *)self + ivar_getOffset(ivar));
+                    *varIndexLong = i;
+                }
                 break;
             case 'L':   // unsigned long
                 number = [coder decodeObjectForKey:key];
                 ul = [number unsignedLongValue];
-                addr = (NSInteger)&ul;
-                object_setInstanceVariable(self, [key UTF8String], *(NSInteger**)addr);
+
+                if ((ivar = class_getInstanceVariable([self class], [ivarKey UTF8String]))) {
+                    varIndexULong = (unsigned long *)(void **)((char *)self + ivar_getOffset(ivar));
+                    *varIndexULong = ul;
+                }
+                
                 break;
             case 'Q':   // unsigned long long
                 number = [coder decodeObjectForKey:key];
                 ull = [number unsignedLongLongValue];
-                addr = (NSInteger)&ull;
-                object_setInstanceVariable(self, [key UTF8String], *(NSInteger**)addr);
+                addr = (unsigned int)&ull;
+                
+                if ((ivar = class_getInstanceVariable([self class], [ivarKey UTF8String]))) {
+                    varIndexULongLong = (unsigned long long *)(void **)((char *)self + ivar_getOffset(ivar));
+                    *varIndexULongLong = ull;
+                }
                 break;
 			case 'l':   // long
                 number = [coder decodeObjectForKey:key];
                 longValue = [number longValue];
-                addr = (NSInteger)&longValue;
-                object_setInstanceVariable(self, [key UTF8String], *(NSInteger**)addr);
+                if ((ivar = class_getInstanceVariable([self class], [ivarKey UTF8String]))) {
+                    varIndexLong = (long *)(void **)((char *)self + ivar_getOffset(ivar));
+                    *varIndexLong = longValue;
+                }
                 break;
             case 'I':   // unsigned
                 number = [coder decodeObjectForKey:key];
                 unsignedValue = [number unsignedIntValue];
-                addr = (NSInteger)&unsignedValue;
-                object_setInstanceVariable(self, [key UTF8String], *(NSInteger**)addr);
+                if ((ivar = class_getInstanceVariable([self class], [ivarKey UTF8String]))) {
+                    varU = (unsigned *)(void **)((char *)self + ivar_getOffset(ivar));
+                    *varU = unsignedValue;
+                }
                 break;
             case 's':   // short
                 number = [coder decodeObjectForKey:key];
                 shortValue = [number shortValue];
-                addr = (NSInteger)&shortValue;
-                object_setInstanceVariable(self, [key UTF8String], *(NSInteger**)addr);
+                if ((ivar = class_getInstanceVariable([self class], [ivarKey UTF8String]))) {
+                    varShort = (short *)(void **)((char *)self + ivar_getOffset(ivar));
+                    *varShort = shortValue;
+                }
+                break;
+            case 'q':   // long long
+                number = [coder decodeObjectForKey:key];
+                longLongValue = [number longLongValue];
+                if ((ivar = class_getInstanceVariable([self class], [ivarKey UTF8String]))) {
+                    varIndexLongLong = (long long *)(void **)((char *)self + ivar_getOffset(ivar));
+                    *varIndexLongLong = longLongValue;
+                }
                 break;
 				
             default:
