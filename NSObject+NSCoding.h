@@ -16,3 +16,15 @@
 - (NSDictionary *)properties;
 
 @end
+
+#define AUTO_ENCODE - (void)encodeWithCoder:(NSCoder *)coder { \
+    [self autoEncodeWithCoder:coder]; \
+}
+
+
+#define AUTO_DECODE - (id)initWithCoder:(NSCoder *)coder { \
+    if ((self = [super init])) { \
+        [self autoDecode:coder]; \
+    } \
+    return self; \
+}

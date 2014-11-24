@@ -8,7 +8,7 @@
 
 #import "NSObject+NSCoding.h"
 #import <objc/runtime.h>
-
+#import <CoreGraphics/CoreGraphics.h>
 
 @implementation NSObject (NSCoding)
 
